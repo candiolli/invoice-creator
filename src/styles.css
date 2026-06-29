@@ -1,0 +1,516 @@
+:root {
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --rule: #cbd5e1;
+  --total-bg: #e6f0f6;
+  --bg: #f5f6f8;
+  --accent: #0f172a;
+  --accent-fg: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  height: 100vh;
+}
+
+.app__sidebar {
+  background: #ffffff;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 16px 18px 32px;
+}
+
+.app__sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  position: sticky;
+  top: -16px;
+  background: #ffffff;
+  padding: 16px 0;
+  margin: -16px 0 8px;
+  z-index: 1;
+}
+
+.app__sidebar-head h1 {
+  font-size: 16px;
+  margin: 0;
+}
+
+.app__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.app__btn {
+  background: var(--accent);
+  color: var(--accent-fg);
+  border: 0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.app__btn:hover {
+  opacity: 0.9;
+}
+
+.app__btn--ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.app__btn--danger {
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.app__btn--danger:hover {
+  background: #fef2f2;
+}
+
+.app__actions {
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.app__user {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.app__user-email {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app__status {
+  margin: 6px 0 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.app__status--muted {
+  text-align: right;
+}
+
+.app__placeholder {
+  margin: auto;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Invoice list */
+.list {
+  margin: 8px 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fafbfc;
+}
+
+.list__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.list__new {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.list__items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.list__item {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  padding: 8px 10px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "title total"
+    "client total";
+  column-gap: 8px;
+  font: inherit;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+
+.list__item:last-child {
+  border-bottom: 0;
+}
+
+.list__item:hover {
+  background: #f1f5f9;
+}
+
+.list__item--active {
+  background: #e2e8f0;
+}
+
+.list__item-title {
+  grid-area: title;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.list__item-client {
+  grid-area: client;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.list__item-total {
+  grid-area: total;
+  align-self: center;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.list__empty {
+  margin: 0;
+  padding: 12px 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Setup notice (rendered when amplify_outputs.json is missing) */
+.setup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 32px;
+}
+
+.setup__card {
+  max-width: 520px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px 28px;
+  line-height: 1.55;
+  font-size: 14px;
+}
+
+.setup__card h1 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.setup__card h2 {
+  margin: 16px 0 8px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.setup__card code {
+  background: #f1f5f9;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 12.5px;
+}
+
+.setup__card pre {
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 10px 12px;
+  border-radius: 6px;
+  margin: 8px 0;
+  overflow-x: auto;
+}
+
+.setup__card pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: 13px;
+}
+
+.setup__muted {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 16px;
+}
+
+.app__preview {
+  overflow-y: auto;
+  padding: 32px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Form */
+.form fieldset {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin: 0 0 14px;
+}
+
+.form legend {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding: 0 6px;
+}
+
+.field {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.field span {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font: inherit;
+  color: var(--text);
+}
+
+.field input:focus,
+.field textarea:focus {
+  outline: 2px solid #93c5fd;
+  outline-offset: 0;
+  border-color: transparent;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 48px;
+}
+
+/* Invoice preview */
+.invoice {
+  background: #ffffff;
+  width: 820px;
+  max-width: 100%;
+  padding: 64px 56px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.06);
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.invoice__top {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 24px;
+  align-items: start;
+}
+
+.invoice__company h1 {
+  font-size: 26px;
+  margin: 0 0 12px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.invoice__cnpj {
+  margin: 0;
+  color: var(--text);
+}
+
+.invoice__meta {
+  text-align: right;
+}
+
+.invoice__meta h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.invoice__meta p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.invoice__rule {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 16px 0 24px;
+}
+
+.invoice__parties {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+.invoice__parties p {
+  margin: 0 0 2px;
+}
+
+.invoice__label {
+  font-weight: 700;
+}
+
+.invoice__strong {
+  font-weight: 700;
+}
+
+.invoice__muted {
+  color: var(--muted);
+}
+
+.invoice__services {
+  margin-bottom: 24px;
+}
+
+.invoice__services-head {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  padding-bottom: 6px;
+}
+
+.invoice__services hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 0;
+}
+
+.invoice__services-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: start;
+  padding: 16px 0;
+}
+
+.invoice__services-row p {
+  margin: 0;
+}
+
+.invoice__amount {
+  font-weight: 400;
+}
+
+.invoice__total {
+  background: var(--total-bg);
+  border-radius: 4px;
+  padding: 24px 24px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 8px;
+  margin: 24px 0 32px;
+  font-size: 18px;
+}
+
+.invoice__total strong {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.invoice__bank {
+  margin-bottom: 16px;
+}
+
+.invoice__bank p {
+  margin: 0 0 2px;
+}
+
+.invoice__footer {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+/* Print: only the invoice prints, edge-to-edge */
+@media print {
+  @page {
+    size: A4;
+    margin: 16mm;
+  }
+
+  html,
+  body,
+  #root {
+    background: #ffffff;
+    height: auto;
+  }
+
+  .app {
+    display: block;
+    height: auto;
+  }
+
+  .app__sidebar {
+    display: none !important;
+  }
+
+  .app__preview {
+    padding: 0;
+    overflow: visible;
+    display: block;
+  }
+
+  .invoice {
+    box-shadow: none;
+    width: 100%;
+    max-width: none;
+    padding: 0;
+    border-radius: 0;
+  }
+}

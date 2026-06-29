@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(npm create *)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(curl -fsS http://localhost:5173 -o /tmp/index.html)",
+      "Read(//tmp/**)",
+      "Bash(git init *)",
+      "Bash(node -p \"JSON.stringify\\({dep: require\\('./package.json'\\).dependencies, dev: require\\('./package.json'\\).devDependencies}, null, 2\\)\")"
+    ]
+  }
+}
