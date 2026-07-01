@@ -31,23 +31,22 @@ export type Invoice = {
 };
 
 export const defaultInvoice: Invoice = {
-  invoiceNumber: "100000626",
-  creationDate: "2026-05-27",
-  dueDate: "2026-07-20",
-  monthOfService: "Jun2026",
-  amount: 5544,
+  invoiceNumber: "",
+  creationDate: "",
+  dueDate: "",
+  monthOfService: "",
+  amount: 0,
   currency: "USD",
 
   billFromName: "",
   billFromCnpj: "",
-  billFromAddress:
-    "",
+  billFromAddress: "",
 
   billToName: "",
   billToAddress: "",
 
-  serviceTitle: "Software development",
-  serviceDescription: "Consulting in systems analysis and development.",
+  serviceTitle: "",
+  serviceDescription: "",
 
   beneficiaryName: "",
   beneficiaryIban: "",
