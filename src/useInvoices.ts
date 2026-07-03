@@ -1,8 +1,14 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { client, type InvoiceRecord } from "./amplifyClient";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { InvoiceRecord } from "./amplifyClient";
 import { defaultInvoice, type Invoice } from "./invoice";
-
-type CreateInput = Partial<Omit<InvoiceRecord, "id" | "owner" | "createdAt" | "updatedAt">>;
+import {
+  cloudStore,
+  localStore,
+  takeGuestInvoices,
+  toCreatableInput,
+  type CreateInput,
+  type Store,
+} from "./store";
 
 function toInvoice(record: InvoiceRecord): Invoice {
   return {
@@ -48,97 +54,135 @@ function byUpdatedDesc(a: InvoiceRecord, b: InvoiceRecord): number {
   return bT.localeCompare(aT);
 }
 
-export function useInvoices() {
+export function useInvoices(authenticated: boolean) {
+  const store: Store = useMemo(
+    () => (authenticated ? cloudStore : localStore),
+    [authenticated]
+  );
+
   const [items, setItems] = useState<InvoiceRecord[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [current, setCurrent] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [migratedCount, setMigratedCount] = useState(0);
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data } = await client.models.Invoice.list();
+
+    // On sign-in, lift any locally-held drafts into the user's account.
+    if (authenticated) {
+      const guests = takeGuestInvoices();
+      let migrated = 0;
+      for (const g of guests) {
+        const created = await cloudStore.create(toCreatableInput(g));
+        if (created) migrated++;
+      }
+      if (migrated > 0) setMigratedCount(migrated);
+    }
+
+    const data = await store.list();
     const sorted = [...data].sort(byUpdatedDesc);
     setItems(sorted);
     if (sorted.length > 0) {
       setCurrentId(sorted[0].id);
       setCurrent(toInvoice(sorted[0]));
+    } else {
+      setCurrentId(null);
+      setCurrent(null);
     }
     setLoading(false);
-  }, []);
+  }, [authenticated, store]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  const select = useCallback((id: string) => {
-    const found = items.find((i) => i.id === id);
-    if (!found) return;
-    setCurrentId(id);
-    setCurrent(toInvoice(found));
-  }, [items]);
+  const select = useCallback(
+    (id: string) => {
+      const found = items.find((i) => i.id === id);
+      if (!found) return;
+      setCurrentId(id);
+      setCurrent(toInvoice(found));
+    },
+    [items]
+  );
 
   const createNew = useCallback(async () => {
-    const result = await client.models.Invoice.create(toCreateInput(defaultInvoice));
-    if (result.data) {
-      setItems((prev) => [result.data!, ...prev]);
-      setCurrentId(result.data.id);
-      setCurrent({ ...defaultInvoice });
+    const created = await store.create(toCreateInput(defaultInvoice));
+    if (created) {
+      setItems((prev) => [created, ...prev]);
+      setCurrentId(created.id);
+      setCurrent(toInvoice(created));
     }
-  }, []);
+  }, [store]);
 
-  const duplicate = useCallback(async () => {
-    if (!current) return;
-    const result = await client.models.Invoice.create(toCreateInput(current));
-    if (result.data) {
-      setItems((prev) => [result.data!, ...prev]);
-      setCurrentId(result.data.id);
-      setCurrent({ ...current });
-    }
-  }, [current]);
-
-  const remove = useCallback(async () => {
-    if (!currentId) return;
-    if (!window.confirm("Delete this invoice?")) return;
-    await client.models.Invoice.delete({ id: currentId });
-    setItems((prev) => {
-      const next = prev.filter((i) => i.id !== currentId);
-      if (next.length > 0) {
-        setCurrentId(next[0].id);
-        setCurrent(toInvoice(next[0]));
-      } else {
-        setCurrentId(null);
-        setCurrent(null);
+  const duplicate = useCallback(
+    async (id?: string) => {
+      const targetId = id ?? currentId;
+      const source = items.find((i) => i.id === targetId);
+      if (!source) return;
+      const created = await store.create(toCreateInput(toInvoice(source)));
+      if (created) {
+        setItems((prev) => [created, ...prev]);
+        setCurrentId(created.id);
+        setCurrent(toInvoice(created));
       }
-      return next;
-    });
-  }, [currentId]);
+    },
+    [items, currentId, store]
+  );
 
-  const patch = useCallback((p: Partial<Invoice>) => {
-    if (!current || !currentId) return;
-    const next = { ...current, ...p };
-    setCurrent(next);
+  const remove = useCallback(
+    async (id?: string) => {
+      const targetId = id ?? currentId;
+      if (!targetId) return;
+      if (!window.confirm("Delete this invoice?")) return;
+      await store.remove(targetId);
+      setItems((prev) => {
+        const next = prev.filter((i) => i.id !== targetId);
+        if (targetId === currentId) {
+          if (next.length > 0) {
+            setCurrentId(next[0].id);
+            setCurrent(toInvoice(next[0]));
+          } else {
+            setCurrentId(null);
+            setCurrent(null);
+          }
+        }
+        return next;
+      });
+    },
+    [currentId, store]
+  );
 
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    const id = currentId;
-    saveTimer.current = setTimeout(async () => {
-      setSaving(true);
-      const updated = await client.models.Invoice.update({ id, ...toCreateInput(next) });
-      setItems((prev) =>
-        prev
-          .map((i) => (i.id === id ? updated.data ?? i : i))
-          .sort(byUpdatedDesc)
-      );
-      setSaving(false);
-    }, 800);
-  }, [current, currentId]);
+  const patch = useCallback(
+    (p: Partial<Invoice>) => {
+      if (!current || !currentId) return;
+      const next = { ...current, ...p };
+      setCurrent(next);
+
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      const id = currentId;
+      saveTimer.current = setTimeout(async () => {
+        setSaving(true);
+        const updated = await store.update(id, toCreateInput(next));
+        setItems((prev) =>
+          prev.map((i) => (i.id === id ? updated ?? i : i)).sort(byUpdatedDesc)
+        );
+        setSaving(false);
+      }, 800);
+    },
+    [current, currentId, store]
+  );
 
   const resetCurrentToDefaults = useCallback(() => {
     if (!currentId) return;
     patch(defaultInvoice);
   }, [currentId, patch]);
+
+  const acknowledgeMigration = useCallback(() => setMigratedCount(0), []);
 
   return {
     items,
@@ -146,6 +190,8 @@ export function useInvoices() {
     current,
     loading,
     saving,
+    migratedCount,
+    acknowledgeMigration,
     select,
     createNew,
     duplicate,
